@@ -70,4 +70,27 @@ public class AutorService {
     public Autor fromDTO(AutorDTO autorDTO){
         return new Autor(autorDTO.getNome(), autorDTO.getDataNascimento(), autorDTO.getNacionalidade());
     }
+
+    public List<Autor> search(String nome, String nacionalidade) {
+
+        boolean hasNome = nome != null && !nome.isBlank();
+        boolean hasNacionalidade = nacionalidade != null && !nacionalidade.isBlank();
+
+        if (hasNome && hasNacionalidade) {
+            return autorRepository
+                    .findByNomeContainingIgnoreCaseAndNacionalidadeContainingIgnoreCase(
+                            nome.trim(),
+                            nacionalidade.trim()
+                    );
+        }
+        if (hasNome) {
+            return autorRepository
+                    .findByNomeContainingIgnoreCase(nome.trim());
+        }
+        if (hasNacionalidade) {
+            return autorRepository
+                    .findByNacionalidadeContainingIgnoreCase(nacionalidade.trim());
+        }
+        return autorRepository.findAll();
+    }
 }

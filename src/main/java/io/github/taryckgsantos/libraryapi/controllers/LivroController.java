@@ -1,6 +1,7 @@
 package io.github.taryckgsantos.libraryapi.controllers;
 
 import io.github.taryckgsantos.libraryapi.controllers.dto.CadastroLivroDTO;
+import io.github.taryckgsantos.libraryapi.model.GeneroLivro;
 import io.github.taryckgsantos.libraryapi.model.Livro;
 import io.github.taryckgsantos.libraryapi.service.LivroService;
 import jakarta.validation.Valid;
@@ -43,10 +44,15 @@ public class LivroController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CadastroLivroDTO>> findAll(){
-        List<Livro> list = livroService.findAll();
-        List<CadastroLivroDTO> listLivroDTO = list.stream().map(CadastroLivroDTO::new).toList();
-        return ResponseEntity.ok().body(listLivroDTO);
+    public ResponseEntity<List<CadastroLivroDTO>> findAllOrSearch(
+            @RequestParam(required = false) String isbn,
+            @RequestParam(required = false) String titulo,
+            @RequestParam(required = false) GeneroLivro genero,
+            @RequestParam(required = false) UUID autorId
+    ) {
+        List<Livro> list = livroService.search(isbn, titulo, genero, autorId);
+        List<CadastroLivroDTO> listDTO = list.stream().map(CadastroLivroDTO::new).toList();
+        return ResponseEntity.ok().body(listDTO);
     }
 
     @DeleteMapping(value = "/{id}")

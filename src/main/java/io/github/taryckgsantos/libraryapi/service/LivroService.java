@@ -91,4 +91,46 @@ public class LivroService {
                 autor
         );
     }
+
+    public List<Livro> search(String isbn, String titulo, io.github.taryckgsantos.libraryapi.model.GeneroLivro genero, UUID autorId) {
+
+        boolean hasIsbn   = isbn != null && !isbn.isBlank();
+        boolean hasTitulo = titulo != null && !titulo.isBlank();
+
+        if (hasIsbn) {
+            return livroRepository.findByIsbnContainingIgnoreCase(isbn.trim());
+        }
+
+        if (hasTitulo && genero != null && autorId != null) {
+            return livroRepository.findByTituloContainingIgnoreCaseAndGeneroAndAutor_Id(
+                    titulo.trim(), genero, autorId
+            );
+        }
+
+        if (hasTitulo && genero != null) {
+            return livroRepository.findByTituloContainingIgnoreCaseAndGenero(titulo.trim(), genero);
+        }
+
+        if (hasTitulo && autorId != null) {
+            return livroRepository.findByTituloContainingIgnoreCaseAndAutor_Id(titulo.trim(), autorId);
+        }
+
+        if (genero != null && autorId != null) {
+            return livroRepository.findByGeneroAndAutor_Id(genero, autorId);
+        }
+
+        if (hasTitulo) {
+            return livroRepository.findByTituloContainingIgnoreCase(titulo.trim());
+        }
+
+        if (genero != null) {
+            return livroRepository.findByGenero(genero);
+        }
+
+        if (autorId != null) {
+            return livroRepository.findByAutor_Id(autorId);
+        }
+
+        return livroRepository.findAll();
+    }
 }

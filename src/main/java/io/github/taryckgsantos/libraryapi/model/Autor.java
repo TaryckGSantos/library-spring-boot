@@ -5,8 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -15,6 +19,7 @@ import java.util.UUID;
 @Table(name = "tb_autor")
 @Data // Getter, Setter, toString, HashCode e Equals
 @NoArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 public class Autor {
 
     @Id
@@ -32,6 +37,12 @@ public class Autor {
 
     @OneToMany(mappedBy = "autor", cascade = CascadeType.ALL)
     private List<Livro> livros = new ArrayList<>();
+
+    @CreatedDate
+    private LocalDateTime dataCadastro;
+
+    @LastModifiedDate
+    private LocalDateTime dataAtualizacao;
 
     public Autor(String nome, LocalDate dataNascimento, String nacionalidade) {
         this.nome = nome;

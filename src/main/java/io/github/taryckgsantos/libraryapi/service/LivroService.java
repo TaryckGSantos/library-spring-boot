@@ -1,6 +1,5 @@
 package io.github.taryckgsantos.libraryapi.service;
 
-import io.github.taryckgsantos.libraryapi.controllers.dto.AutorDTO;
 import io.github.taryckgsantos.libraryapi.controllers.dto.CadastroLivroDTO;
 import io.github.taryckgsantos.libraryapi.exceptions.DatabaseException;
 import io.github.taryckgsantos.libraryapi.exceptions.ResourceNotFoundException;
@@ -28,24 +27,39 @@ public class LivroService {
 
     @Transactional
     public Livro insert(Livro livro){
-        return livroRepository.save(livro);
+        try {
+            return livroRepository.save(livro);
+        } catch (DataIntegrityViolationException e) {
+            throw new DatabaseException("Erro de integridade ao inserir Livro.", e);
+        }
     }
 
     @Transactional
     public Livro update(UUID id, CadastroLivroDTO livroDTO){
-        Livro livro = livroRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(id));
+        Livro livro = livroRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(id));
+
         livro.setIsbn(livroDTO.getIsbn());
         livro.setTitulo(livroDTO.getTitulo());
         livro.setDataPublicacao(livroDTO.getDataPublicacao());
         livro.setGenero(livroDTO.getGenero());
         livro.setPreco(livroDTO.getPreco());
-        livro.setAutor(autorRepository.findById(livroDTO.getAutor()).orElseThrow(() -> new ResourceNotFoundException("Autor não encontrado: " + livroDTO.getAutor())));
-        return livroRepository.save(livro);
+
+        Autor autor = autorRepository.findById(livroDTO.getAutor())
+                .orElseThrow(() -> new ResourceNotFoundException("Autor não encontrado: " + livroDTO.getAutor()));
+        livro.setAutor(autor);
+
+        try {
+            return livroRepository.save(livro);
+        } catch (DataIntegrityViolationException e) {
+            throw new DatabaseException("Erro de integridade ao atualizar Livro. Id " + id, e);
+        }
     }
 
     @Transactional
     public Livro findById(UUID id){
-        return livroRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(id));
+        return livroRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(id));
     }
 
     @Transactional
@@ -60,14 +74,21 @@ public class LivroService {
         } catch (EmptyResultDataAccessException e) {
             throw new ResourceNotFoundException(id);
         } catch (DataIntegrityViolationException e) {
-            throw new DatabaseException(e.getMessage());
+            throw new DatabaseException("Erro de integridade ao deletar Livro. Id " + id, e);
         }
     }
 
     public Livro fromDTO(CadastroLivroDTO livroDTO){
-        return new Livro(livroDTO.getIsbn(), livroDTO.getTitulo(), livroDTO.getDataPublicacao(),
-                         livroDTO.getGenero(), livroDTO.getPreco(),
-                         autorRepository.findById(livroDTO.getAutor())
-                         .orElseThrow(() -> new ResourceNotFoundException(livroDTO.getAutor())));
+        Autor autor = autorRepository.findById(livroDTO.getAutor())
+                .orElseThrow(() -> new ResourceNotFoundException("Autor não encontrado: " + livroDTO.getAutor()));
+
+        return new Livro(
+                livroDTO.getIsbn(),
+                livroDTO.getTitulo(),
+                livroDTO.getDataPublicacao(),
+                livroDTO.getGenero(),
+                livroDTO.getPreco(),
+                autor
+        );
     }
 }

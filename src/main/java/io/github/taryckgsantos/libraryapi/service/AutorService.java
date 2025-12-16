@@ -2,7 +2,6 @@ package io.github.taryckgsantos.libraryapi.service;
 
 import io.github.taryckgsantos.libraryapi.controllers.dto.AutorDTO;
 import io.github.taryckgsantos.libraryapi.exceptions.DatabaseException;
-import io.github.taryckgsantos.libraryapi.exceptions.ObjectNotFoundException;
 import io.github.taryckgsantos.libraryapi.exceptions.ResourceNotFoundException;
 import io.github.taryckgsantos.libraryapi.model.Autor;
 import io.github.taryckgsantos.libraryapi.repository.AutorRepository;
@@ -23,21 +22,33 @@ public class AutorService {
 
     @Transactional
     public Autor insert(Autor autor){
-        return autorRepository.save(autor);
+        try {
+            return autorRepository.save(autor);
+        } catch (DataIntegrityViolationException e) {
+            throw new DatabaseException("Erro de integridade ao inserir Autor.", e);
+        }
     }
 
     @Transactional
     public Autor update(UUID id, AutorDTO autorDTO){
-        Autor autor = autorRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(id));
+        Autor autor = autorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(id));
+
         autor.setNome(autorDTO.getNome());
         autor.setNacionalidade(autorDTO.getNacionalidade());
         autor.setDataNascimento(autorDTO.getDataNascimento());
-        return autorRepository.save(autor);
+
+        try {
+            return autorRepository.save(autor);
+        } catch (DataIntegrityViolationException e) {
+            throw new DatabaseException("Erro de integridade ao atualizar Autor. Id " + id, e);
+        }
     }
 
     @Transactional
     public Autor findById(UUID id){
-        return autorRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(id));
+        return autorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(id));
     }
 
     @Transactional
@@ -52,7 +63,7 @@ public class AutorService {
         } catch (EmptyResultDataAccessException e) {
             throw new ResourceNotFoundException(id);
         } catch (DataIntegrityViolationException e) {
-            throw new DatabaseException(e.getMessage());
+            throw new DatabaseException("Erro de integridade ao deletar Autor. Id " + id, e);
         }
     }
 

@@ -3,6 +3,7 @@ package io.github.taryckgsantos.libraryapi.controllers;
 import io.github.taryckgsantos.libraryapi.controllers.dto.AutorDTO;
 import io.github.taryckgsantos.libraryapi.model.Autor;
 import io.github.taryckgsantos.libraryapi.service.AutorService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +22,7 @@ public class AutorController {
     private AutorService autorService;
 
     @PostMapping
-    public ResponseEntity<Autor> insert(@RequestBody AutorDTO autor){
+    public ResponseEntity<Autor> insert(@Valid @RequestBody AutorDTO autor){
         Autor saved = autorService.fromDTO(autor);
         saved = autorService.insert(saved);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(saved.getId()).toUri();
@@ -29,7 +30,7 @@ public class AutorController {
     }
 
     @PutMapping(value = "/{id}")
-    public ResponseEntity<Void> update(@PathVariable String id, @RequestBody AutorDTO autorDTO){
+    public ResponseEntity<Void> update(@PathVariable String id, @Valid @RequestBody AutorDTO autorDTO){
         UUID idAutor = UUID.fromString(id);
         Autor autor = autorService.update(idAutor, autorDTO);
         return ResponseEntity.noContent().build();

@@ -3,6 +3,7 @@ package io.github.taryckgsantos.libraryapi.controllers;
 import io.github.taryckgsantos.libraryapi.controllers.dto.CadastroLivroDTO;
 import io.github.taryckgsantos.libraryapi.model.Livro;
 import io.github.taryckgsantos.libraryapi.service.LivroService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +21,7 @@ public class LivroController {
     private LivroService livroService;
 
     @PostMapping
-    public ResponseEntity<Livro> insert(@RequestBody CadastroLivroDTO livroDTO){
+    public ResponseEntity<Livro> insert(@Valid @RequestBody CadastroLivroDTO livroDTO){
         Livro saved = livroService.fromDTO(livroDTO);
         saved = livroService.insert(saved);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(saved.getId()).toUri();
@@ -28,7 +29,7 @@ public class LivroController {
     }
 
     @PutMapping(value = "/{id}")
-    public ResponseEntity<Void> update(@PathVariable String id, @RequestBody CadastroLivroDTO livroDTO){
+    public ResponseEntity<Void> update(@PathVariable String id, @Valid @RequestBody CadastroLivroDTO livroDTO){
         UUID livroId = UUID.fromString(id);
         Livro livro = livroService.update(livroId, livroDTO);
         return ResponseEntity.noContent().build();

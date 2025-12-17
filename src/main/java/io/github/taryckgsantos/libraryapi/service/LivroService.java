@@ -4,14 +4,21 @@ import io.github.taryckgsantos.libraryapi.controllers.dto.CadastroLivroDTO;
 import io.github.taryckgsantos.libraryapi.exceptions.DatabaseException;
 import io.github.taryckgsantos.libraryapi.exceptions.ResourceNotFoundException;
 import io.github.taryckgsantos.libraryapi.model.Autor;
+import io.github.taryckgsantos.libraryapi.model.GeneroLivro;
 import io.github.taryckgsantos.libraryapi.model.Livro;
 import io.github.taryckgsantos.libraryapi.repository.AutorRepository;
 import io.github.taryckgsantos.libraryapi.repository.LivroRepository;
+import io.github.taryckgsantos.libraryapi.validators.LivroValidator;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
+import static io.github.taryckgsantos.libraryapi.repository.specs.LivroSpecs.*;
+
 
 import java.util.List;
 import java.util.UUID;
@@ -25,8 +32,12 @@ public class LivroService {
     @Autowired
     private AutorRepository autorRepository;
 
+    @Autowired
+    private LivroValidator livroValidator;
+
     @Transactional
-    public Livro insert(Livro livro){
+    public Livro insert(Livro livro) {
+        livroValidator.validar(livro);
         try {
             return livroRepository.save(livro);
         } catch (DataIntegrityViolationException e) {
@@ -35,7 +46,7 @@ public class LivroService {
     }
 
     @Transactional
-    public Livro update(UUID id, CadastroLivroDTO livroDTO){
+    public Livro update(UUID id, CadastroLivroDTO livroDTO) {
         Livro livro = livroRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(id));
 
@@ -49,6 +60,8 @@ public class LivroService {
                 .orElseThrow(() -> new ResourceNotFoundException("Autor não encontrado: " + livroDTO.getAutor()));
         livro.setAutor(autor);
 
+        livroValidator.validar(livro);
+
         try {
             return livroRepository.save(livro);
         } catch (DataIntegrityViolationException e) {
@@ -57,18 +70,18 @@ public class LivroService {
     }
 
     @Transactional
-    public Livro findById(UUID id){
+    public Livro findById(UUID id) {
         return livroRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(id));
     }
 
     @Transactional
-    public List<Livro> findAll(){
+    public List<Livro> findAll() {
         return livroRepository.findAll();
     }
 
     @Transactional
-    public void delete(UUID id){
+    public void delete(UUID id) {
         try {
             livroRepository.deleteById(id);
         } catch (EmptyResultDataAccessException e) {
@@ -78,7 +91,7 @@ public class LivroService {
         }
     }
 
-    public Livro fromDTO(CadastroLivroDTO livroDTO){
+    public Livro fromDTO(CadastroLivroDTO livroDTO) {
         Autor autor = autorRepository.findById(livroDTO.getAutor())
                 .orElseThrow(() -> new ResourceNotFoundException("Autor não encontrado: " + livroDTO.getAutor()));
 
@@ -92,45 +105,14 @@ public class LivroService {
         );
     }
 
-    public List<Livro> search(String isbn, String titulo, io.github.taryckgsantos.libraryapi.model.GeneroLivro genero, UUID autorId) {
+    public List<Livro> search(String isbn, String titulo, GeneroLivro genero, UUID autorId) {
 
-        boolean hasIsbn   = isbn != null && !isbn.isBlank();
-        boolean hasTitulo = titulo != null && !titulo.isBlank();
+        Specification<Livro> spec = Specification.<Livro>unrestricted()
+                .and(isbnLike(isbn))
+                .and(tituloLike(titulo))
+                .and(generoEqual(genero))
+                .and(autorEqual(autorId));
 
-        if (hasIsbn) {
-            return livroRepository.findByIsbnContainingIgnoreCase(isbn.trim());
-        }
-
-        if (hasTitulo && genero != null && autorId != null) {
-            return livroRepository.findByTituloContainingIgnoreCaseAndGeneroAndAutor_Id(
-                    titulo.trim(), genero, autorId
-            );
-        }
-
-        if (hasTitulo && genero != null) {
-            return livroRepository.findByTituloContainingIgnoreCaseAndGenero(titulo.trim(), genero);
-        }
-
-        if (hasTitulo && autorId != null) {
-            return livroRepository.findByTituloContainingIgnoreCaseAndAutor_Id(titulo.trim(), autorId);
-        }
-
-        if (genero != null && autorId != null) {
-            return livroRepository.findByGeneroAndAutor_Id(genero, autorId);
-        }
-
-        if (hasTitulo) {
-            return livroRepository.findByTituloContainingIgnoreCase(titulo.trim());
-        }
-
-        if (genero != null) {
-            return livroRepository.findByGenero(genero);
-        }
-
-        if (autorId != null) {
-            return livroRepository.findByAutor_Id(autorId);
-        }
-
-        return livroRepository.findAll();
+        return livroRepository.findAll(spec);
     }
 }

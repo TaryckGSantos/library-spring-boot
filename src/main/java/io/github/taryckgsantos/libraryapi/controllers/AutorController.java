@@ -46,8 +46,8 @@ public class AutorController {
     @GetMapping
     public ResponseEntity<List<AutorDTO>> findAllOrSearch(
             @RequestParam(required = false) String nome,
-            @RequestParam(required = false) String nacionalidade
-    ) {
+            @RequestParam(required = false) String nacionalidade) {
+
         List<Autor> list = autorService.search(nome, nacionalidade);
         List<AutorDTO> listDTO = list.stream().map(AutorDTO::new).toList();
         return ResponseEntity.ok().body(listDTO);

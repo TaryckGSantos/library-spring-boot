@@ -48,8 +48,8 @@ public class LivroController {
             @RequestParam(required = false) String isbn,
             @RequestParam(required = false) String titulo,
             @RequestParam(required = false) GeneroLivro genero,
-            @RequestParam(required = false) UUID autorId
-    ) {
+            @RequestParam(required = false) UUID autorId ) {
+
         List<Livro> list = livroService.search(isbn, titulo, genero, autorId);
         List<CadastroLivroDTO> listDTO = list.stream().map(CadastroLivroDTO::new).toList();
         return ResponseEntity.ok().body(listDTO);

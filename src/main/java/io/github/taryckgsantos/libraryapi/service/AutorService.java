@@ -9,10 +9,15 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+
+import static io.github.taryckgsantos.libraryapi.repository.specs.AutorSpecs.nacionalidadeLike;
+import static io.github.taryckgsantos.libraryapi.repository.specs.AutorSpecs.nomeLike;
 
 @Service
 public class AutorService {
@@ -73,24 +78,10 @@ public class AutorService {
 
     public List<Autor> search(String nome, String nacionalidade) {
 
-        boolean hasNome = nome != null && !nome.isBlank();
-        boolean hasNacionalidade = nacionalidade != null && !nacionalidade.isBlank();
+        Specification<Autor> spec = Specification.<Autor>unrestricted()
+                .and(nomeLike(nome))
+                .and(nacionalidadeLike(nacionalidade));
 
-        if (hasNome && hasNacionalidade) {
-            return autorRepository
-                    .findByNomeContainingIgnoreCaseAndNacionalidadeContainingIgnoreCase(
-                            nome.trim(),
-                            nacionalidade.trim()
-                    );
-        }
-        if (hasNome) {
-            return autorRepository
-                    .findByNomeContainingIgnoreCase(nome.trim());
-        }
-        if (hasNacionalidade) {
-            return autorRepository
-                    .findByNacionalidadeContainingIgnoreCase(nacionalidade.trim());
-        }
-        return autorRepository.findAll();
+        return autorRepository.findAll(spec);
     }
 }

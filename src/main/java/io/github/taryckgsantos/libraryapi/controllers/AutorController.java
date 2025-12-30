@@ -2,10 +2,16 @@ package io.github.taryckgsantos.libraryapi.controllers;
 
 import io.github.taryckgsantos.libraryapi.controllers.dto.AutorDTO;
 import io.github.taryckgsantos.libraryapi.model.Autor;
+import io.github.taryckgsantos.libraryapi.model.Usuario;
+import io.github.taryckgsantos.libraryapi.security.SecurityService;
 import io.github.taryckgsantos.libraryapi.service.AutorService;
+import io.github.taryckgsantos.libraryapi.service.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -21,15 +27,22 @@ public class AutorController {
     @Autowired
     private AutorService autorService;
 
+    @Autowired
+    private SecurityService securityService;
+
     @PostMapping
+    @PreAuthorize("hasRole('GERENTE')")
     public ResponseEntity<Autor> insert(@Valid @RequestBody AutorDTO autor){
         Autor saved = autorService.fromDTO(autor);
+        Usuario usuario = securityService.obterUsuarioLogado();
+        saved.setUsuario(usuario);
         saved = autorService.insert(saved);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(saved.getId()).toUri();
         return ResponseEntity.created(uri).build();
     }
 
     @PutMapping(value = "/{id}")
+    @PreAuthorize("hasRole('GERENTE')")
     public ResponseEntity<Void> update(@PathVariable String id, @Valid @RequestBody AutorDTO autorDTO){
         UUID idAutor = UUID.fromString(id);
         Autor autor = autorService.update(idAutor, autorDTO);
@@ -37,6 +50,7 @@ public class AutorController {
     }
 
     @GetMapping(value = "/{id}")
+    @PreAuthorize("hasAnyRole('OPERADOR', 'GERENTE')")
     public ResponseEntity<AutorDTO> findById(@PathVariable String id){
         UUID idAutor = UUID.fromString(id);
         Autor autor = autorService.findById(idAutor);
@@ -44,6 +58,7 @@ public class AutorController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('OPERADOR', 'GERENTE')")
     public ResponseEntity<List<AutorDTO>> findAllOrSearch(
             @RequestParam(required = false) String nome,
             @RequestParam(required = false) String nacionalidade) {
@@ -54,6 +69,7 @@ public class AutorController {
     }
 
     @DeleteMapping(value = "/{id}")
+    @PreAuthorize("hasRole('GERENTE')")
     public ResponseEntity<Void> delete(@PathVariable String id){
         UUID idAutor = UUID.fromString(id);
         autorService.delete(idAutor);

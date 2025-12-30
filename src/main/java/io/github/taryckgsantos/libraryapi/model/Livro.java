@@ -38,6 +38,10 @@ public class Livro {
     @JoinColumn(name = "id_autor", nullable = false)
     private Autor autor;
 
+    @ManyToOne
+    @JoinColumn(name = "usuario")
+    private Usuario usuario;
+
     public Livro(String isbn, String titulo, LocalDate dataPublicacao,
                  GeneroLivro genero, BigDecimal preco, Autor autor){
         this.isbn = isbn;

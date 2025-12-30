@@ -44,6 +44,10 @@ public class Autor {
     @LastModifiedDate
     private LocalDateTime dataAtualizacao;
 
+    @ManyToOne
+    @JoinColumn(name = "usuario")
+    private Usuario usuario;
+
     public Autor(String nome, LocalDate dataNascimento, String nacionalidade) {
         this.nome = nome;
         this.dataNascimento = dataNascimento;

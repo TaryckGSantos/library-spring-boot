@@ -3,10 +3,13 @@ package io.github.taryckgsantos.libraryapi.controllers;
 import io.github.taryckgsantos.libraryapi.controllers.dto.CadastroLivroDTO;
 import io.github.taryckgsantos.libraryapi.model.GeneroLivro;
 import io.github.taryckgsantos.libraryapi.model.Livro;
+import io.github.taryckgsantos.libraryapi.model.Usuario;
+import io.github.taryckgsantos.libraryapi.security.SecurityService;
 import io.github.taryckgsantos.libraryapi.service.LivroService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -21,15 +24,22 @@ public class LivroController {
     @Autowired
     private LivroService livroService;
 
+    @Autowired
+    private SecurityService securityService;
+
     @PostMapping
+    @PreAuthorize("hasAnyRole('OPERADOR', 'GERENTE')")
     public ResponseEntity<Livro> insert(@Valid @RequestBody CadastroLivroDTO livroDTO){
         Livro saved = livroService.fromDTO(livroDTO);
+        Usuario usuario = securityService.obterUsuarioLogado();
+        saved.setUsuario(usuario);
         saved = livroService.insert(saved);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(saved.getId()).toUri();
         return ResponseEntity.created(uri).build();
     }
 
     @PutMapping(value = "/{id}")
+    @PreAuthorize("hasAnyRole('OPERADOR', 'GERENTE')")
     public ResponseEntity<Void> update(@PathVariable String id, @Valid @RequestBody CadastroLivroDTO livroDTO){
         UUID livroId = UUID.fromString(id);
         Livro livro = livroService.update(livroId, livroDTO);
@@ -37,6 +47,7 @@ public class LivroController {
     }
 
     @GetMapping(value = "/{id}")
+    @PreAuthorize("hasAnyRole('OPERADOR', 'GERENTE')")
     public ResponseEntity<CadastroLivroDTO> findById(@PathVariable String id){
         UUID livroId = UUID.fromString(id);
         Livro livro = livroService.findById(livroId);
@@ -44,6 +55,7 @@ public class LivroController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('OPERADOR', 'GERENTE')")
     public ResponseEntity<List<CadastroLivroDTO>> findAllOrSearch(
             @RequestParam(required = false) String isbn,
             @RequestParam(required = false) String titulo,
@@ -56,6 +68,7 @@ public class LivroController {
     }
 
     @DeleteMapping(value = "/{id}")
+    @PreAuthorize("hasAnyRole('OPERADOR', 'GERENTE')")
     public ResponseEntity<Livro> delete(@PathVariable String id){
         UUID livroId = UUID.fromString(id);
         livroService.delete(livroId);

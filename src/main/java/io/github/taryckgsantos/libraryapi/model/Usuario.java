@@ -24,16 +24,19 @@ public class Usuario {
 
     private String login;
 
+    private String email;
+
     private String senha;
 
     @JdbcTypeCode(SqlTypes.ARRAY)
     @Column(columnDefinition = "varchar[]")
     private List<String> roles;
 
-    public Usuario(String login, String senha, List<String> roles){
+    public Usuario(String login, String email, String senha, List<String> roles){
         this.login = login;
         this.senha = senha;
         this.roles = roles;
+        this.email = email;
     }
 
 }

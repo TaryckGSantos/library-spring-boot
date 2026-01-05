@@ -1,9 +1,6 @@
 package io.github.taryckgsantos.libraryapi.controllers.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PastOrPresent;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.io.Serial;
@@ -25,6 +22,10 @@ public class UsuarioDTO implements Serializable {
     @NotBlank(message = "O campo \"senha\" é obrigatório")
     @Size(min = 8, message = "A senha deve ter no mínimo 8 caracteres")
     private String senha;
+
+    @Email(message = "Email inválido")
+    @NotBlank(message = "O campo \"email\" é obrigatório")
+    private String email;
 
     private List<String> roles;
 

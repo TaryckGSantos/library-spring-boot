@@ -18,7 +18,8 @@ public class SecurityService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if(authentication instanceof CustomAuthentication customAuthentication){
-            
+            return customAuthentication.getUsuario();
         }
+        return null;
     }
 }
